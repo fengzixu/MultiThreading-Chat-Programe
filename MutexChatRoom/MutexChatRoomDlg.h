@@ -4,7 +4,7 @@
 
 #pragma once
 
-
+#define WM_RECVDATA WM_USER+1
 // CMutexChatRoomDlg 对话框
 class CMutexChatRoomDlg : public CDialogEx
 {
@@ -25,7 +25,8 @@ public:
 	enum { IDD = IDD_MUTEXCHATROOM_DIALOG };
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
+	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持 
+
 
 
 // 实现
@@ -36,6 +37,11 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
+	//对定义的消息相应函数进行声明。
+	LRESULT afx_msg OnRecvData(WPARAM wParam, LPARAM lParam);
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnEnChangerecvEdit2();
 };

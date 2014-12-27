@@ -11,7 +11,7 @@
 #define new DEBUG_NEW
 #endif
 #define MAXN 100000
-#define WM_RECVDATA WM_USER+1
+
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -62,7 +62,10 @@ void CMutexChatRoomDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CMutexChatRoomDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
+	ON_MESSAGE(WM_RECVDATA,OnRecvData)
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDOK, &CMutexChatRoomDlg::OnBnClickedOk)
+	ON_EN_CHANGE(IDC_recv_EDIT2, &CMutexChatRoomDlg::OnEnChangerecvEdit2)
 END_MESSAGE_MAP()
 
 
@@ -118,6 +121,7 @@ BOOL CMutexChatRoomDlg::OnInitDialog()
 	CloseHandle(hThread);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
+
 
 void CMutexChatRoomDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
@@ -224,8 +228,56 @@ DWORD WINAPI CMutexChatRoomDlg::RecvProc(LPVOID lpParameter)
 			break;
 		}
 		//格式化存储输入到tempbuff数组里面
-		sprintf(tempbuff,"%s说： %s",inet_ntoa(addrFrom.sin_addr),0,(LPARAM)recvbuff);
+		sprintf(tempbuff,"%s说： %s",inet_ntoa(addrFrom.sin_addr),recvbuff);
 
 		::PostMessage(hwnd,WM_RECVDATA,0,(LPARAM)tempbuff);
 	}
+	return 0;
+}
+
+//窗口的消息相应函数
+LRESULT CMutexChatRoomDlg::OnRecvData(WPARAM wParam, LPARAM lParam){
+
+	CString str = (char*)lParam;
+	CString strTemp;
+
+	GetDlgItemText(IDC_recv_EDIT2,strTemp);
+	str += "\r\n";
+	str+=strTemp;
+	SetDlgItemText(IDC_recv_EDIT2,str);
+	return TRUE;
+}
+
+void CMutexChatRoomDlg::OnBnClickedOk()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//CDialogEx::OnOK();
+	DWORD dwIP;
+	//在控件中获取输入的IP地址
+	((CIPAddressCtrl*)GetDlgItem(IDC_IPADDRESS1))->GetAddress(dwIP);
+
+	//创建一个结构体，保存目的机器的信息
+	SOCKADDR_IN addrTo;
+	addrTo.sin_family = AF_INET;
+	addrTo.sin_port = htons(6000);
+	addrTo.sin_addr.S_un.S_addr = htonl(dwIP);
+
+	CString strSend;
+	GetDlgItemText(IDC_input_EDIT3,strSend);
+	//发送
+	sendto(m_socket,strSend,strSend.GetLength()+1,0,(SOCKADDR*)&addrTo,sizeof(SOCKADDR));
+	//清空
+	SetDlgItemText(IDC_input_EDIT3,"");
+}
+
+
+void CMutexChatRoomDlg::OnEnChangerecvEdit2()
+{
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
+	// 函数并调用 CRichEditCtrl().SetEventMask()，
+	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+
+	// TODO:  在此添加控件通知处理程序代码
 }
